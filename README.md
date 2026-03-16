@@ -1,25 +1,224 @@
-AI Internship & Job Auto Apply System
+# AI Internship Automation System
 
-A personal AI-powered tool to make the job and internship search smarter, faster, and more personalized. This system analyzes resumes, finds relevant opportunities, matches skills to job requirements, generates recruiter-ready contact info, and even creates detailed “Skills Required” sections using LLMs.
+An internship discovery and matching platform with a FastAPI backend and React frontend.
 
-Features
+Upload your resume, fetch internships from multiple platforms, rank by resume-job fit, and review missing skills for each job.
 
-Resume Analysis: Extracts skills, education, and experience automatically.
+## Features
 
-Job Scraping: Finds internships and jobs from LinkedIn, Wellfound, Internshala, and other platforms.
+- Resume upload and parsing (PDF)
+- Multi-platform internship aggregation
+	- Internshala
+	- LinkedIn
+	- Naukri
+	- Indeed
+	- Wellfound
+	- Unstop
+- Job deduplication across platforms
+- Skill match scoring and skill-gap analysis
+- Advanced filters
+	- work mode
+	- location contains
+	- minimum stipend
+	- maximum duration
+	- max posted days
+- Sorting
+	- match score, stipend, duration, posted days, company, title
+- Source-level stats and partial-result handling
 
-Skill Matching: Matches your skills with job requirements for better targeting.
+## Tech Stack
 
-LLM-Generated Skills Sections: Uses TinyLlama to generate human-like “Skills Required” content for each job.
+- Backend: FastAPI, requests, BeautifulSoup, PyPDF2
+- Frontend: React (Vite), Tailwind CSS, axios
+- Language: Python, JavaScript
 
-Recruiter Contacts: Provides emails and LinkedIn profiles for direct outreach.
+## Project Structure
 
-User-Friendly Interface: Built with React frontend and FastAPI backend.
+```text
+.
+|- main.py
+|- requirements.txt
+|- tools/
+|  |- job_scraper.py
+|  |- job_scraper_linkedin.py
+|  |- job_scraper_naukri.py
+|  |- job_scraper_indeed.py
+|  |- job_scraper_wellfound.py
+|  |- job_scraper_unstop.py
+|  |- ranker.py
+|  |- email_generator.py
+|- internship-frontend/
+	 |- package.json
+	 |- src/
+			|- App.jsx
+```
 
-Tech Stack
+## Prerequisites
 
-Backend: Python, FastAPI, PyPDF2, requests
+- Python 3.10+
+- Node.js 18+
+- npm 9+
 
-Frontend: React, Tailwind CSS
+## Setup
 
-AI: LLMs (TinyLlama) for skills analysis and job insights
+### 1) Backend Setup
+
+```bash
+cd "ai internship"
+python -m venv venv
+```
+
+Windows PowerShell:
+
+```powershell
+venv\Scripts\Activate.ps1
+```
+
+Install backend dependencies:
+
+```bash
+pip install -r requirements.txt
+pip install PyPDF2 beautifulsoup4
+```
+
+Run backend:
+
+```bash
+uvicorn main:app --reload
+```
+
+Backend runs on: `http://127.0.0.1:8000`
+
+### 2) Frontend Setup
+
+```bash
+cd internship-frontend
+npm install
+npm run dev
+```
+
+Frontend runs on: `http://127.0.0.1:5173`
+
+## API Endpoints
+
+### `GET /`
+Health check.
+
+Response:
+
+```json
+{ "message": "Server is running 🚀" }
+```
+
+### `POST /upload-resume/`
+Upload a PDF resume.
+
+Form-data:
+- `file`: PDF file
+
+Response:
+
+```json
+{
+	"structured_data": {
+		"name": "Candidate Name",
+		"education": "B.Tech ...",
+		"skills": ["python", "analysis", "excel"]
+	}
+}
+```
+
+### `POST /auto-apply/`
+Fetches, dedupes, filters, ranks, sorts and returns internship matches.
+
+Query parameters:
+- `keyword` (string, default: `finance`)
+- `sources` (string, comma separated or `all`)
+	- allowed: `internshala,linkedin,naukri,indeed,wellfound,unstop`
+- `work_mode` (`remote|hybrid|on-site`)
+- `location_contains` (string)
+- `min_stipend` (int)
+- `max_duration_months` (float)
+- `max_posted_days` (int)
+- `sort_by` (`match_score|stipend|duration|posted_days|company|title`)
+- `sort_order` (`asc|desc`)
+- `top_n` (int, default: `50`)
+
+Example:
+
+```text
+POST /auto-apply/?keyword=data%20analyst&sources=all&work_mode=remote&min_stipend=10000&sort_by=match_score&sort_order=desc&top_n=50
+```
+
+Response (trimmed):
+
+```json
+{
+	"total_jobs_found": 120,
+	"total_jobs_after_dedupe": 87,
+	"total_jobs_after_filters": 24,
+	"source_stats": {
+		"internshala": { "fetched": 20, "after_dedupe": 18, "after_filters": 7 }
+	},
+	"source_failures": [],
+	"filters_applied": {
+		"sources": ["internshala", "linkedin"],
+		"sort_by": "match_score",
+		"sort_order": "desc",
+		"top_n": 50
+	},
+	"top_matches": [
+		{
+			"source": "internshala",
+			"company": "ABC Pvt Ltd",
+			"title": "Finance Intern",
+			"match_score": 66.67,
+			"job_meta": {
+				"work_mode": "remote",
+				"location_text": "Mumbai",
+				"stipend_raw": "10,000/month"
+			},
+			"skills_detail": {
+				"required_skills": ["excel", "analysis"],
+				"matched_skills": ["analysis"],
+				"missing_from_resume": ["excel"]
+			}
+		}
+	]
+}
+```
+
+## Frontend Usage Flow
+
+1. Upload resume PDF
+2. Confirm extracted skills
+3. Enter keyword and select source/filter/sort options
+4. Click `Find Internships`
+5. Review results with:
+	 - source badge
+	 - match score
+	 - metadata chips
+	 - collapsible skills detail
+
+## Known Limitations
+
+- Some job sites are heavily dynamic and may return variable results in plain HTML scraping mode.
+- CSS selectors can break when source websites change their UI.
+- Resume parsing is keyword-based and can be improved with richer NLP/LLM extraction.
+
+## Troubleshooting
+
+- If `/auto-apply/` says `Upload resume first`, upload PDF at `/upload-resume/` first.
+- If frontend cannot reach backend, ensure backend is running on `127.0.0.1:8000`.
+- If Python imports fail in editor, select the correct virtual environment in VS Code.
+
+## Roadmap Ideas
+
+- Switch selected sources to API-based adapters where possible
+- Improve skill extraction and synonym handling
+- Add persistent application tracker and saved searches
+- Add CI checks for backend and frontend
+
+## License
+
+For internship/demo use. Add a formal license if publishing publicly.
