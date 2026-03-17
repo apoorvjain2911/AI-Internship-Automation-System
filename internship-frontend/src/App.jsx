@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+const RAW_API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+const API_BASE_URL = RAW_API_BASE_URL.replace(/\/$/, "");
+
+const apiUrl = (path) => `${API_BASE_URL}${path}`;
 
 function App() {
   const [file, setFile] = useState(null);
@@ -34,14 +37,14 @@ function App() {
       setLoading(true);
 
       const response = await axios.post(
-        `${API_BASE_URL}/upload-resume/`,
+        apiUrl("/upload-resume/"),
         formData
       );
 
       setResumeResult(response.data);
     } catch (error) {
       console.error("Upload error:", error);
-      alert("Error uploading resume.");
+      alert("Error uploading resume. Check VITE_API_BASE_URL and backend availability.");
     } finally {
       setLoading(false);
     }
@@ -97,7 +100,7 @@ function App() {
       }
 
       const response = await axios.post(
-        `${API_BASE_URL}/auto-apply/?${params.toString()}`
+        apiUrl(`/auto-apply/?${params.toString()}`)
       );
 
       setJobsResult(response.data);
@@ -105,7 +108,7 @@ function App() {
       setVisibleJobs(10);
     } catch (error) {
       console.error("Auto apply error:", error);
-      alert("Error fetching internships.");
+      alert("Error fetching internships. Check VITE_API_BASE_URL and backend CORS.");
     } finally {
       setJobLoading(false);
     }

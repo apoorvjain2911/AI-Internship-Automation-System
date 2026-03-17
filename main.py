@@ -4,6 +4,7 @@ import PyPDF2
 import io
 from typing import Optional
 from urllib.parse import urlsplit, urlunsplit
+import os
 
 # Import tools
 from tools.job_scraper import scrape_internshala
@@ -19,10 +20,15 @@ app = FastAPI(title="AI Internship Auto Apply System")
 # ----------------------------
 # CORS
 # ----------------------------
+raw_origins = os.getenv("FRONTEND_ORIGINS", "*")
+allowed_origins = [origin.strip() for origin in raw_origins.split(",") if origin.strip()]
+
+allow_all_origins = "*" in allowed_origins
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=["*"] if allow_all_origins else allowed_origins,
+    allow_credentials=not allow_all_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )

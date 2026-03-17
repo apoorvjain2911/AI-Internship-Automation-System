@@ -238,6 +238,9 @@ uvicorn main:app --host 0.0.0.0 --port ${PORT}
 - Health check path is `/`.
 - Resume data is stored in-memory currently, so it resets on redeploy/restart.
 - Some job sources are dynamic and may return varying results on hosted environments.
+- Set Railway backend env var:
+	- `FRONTEND_ORIGINS=https://<your-vercel-app>.vercel.app`
+	- For multiple frontends, use comma-separated values.
 
 ### Frontend deployment
 
