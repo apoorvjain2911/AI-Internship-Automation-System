@@ -212,6 +212,38 @@ Response (trimmed):
 - If frontend cannot reach backend, ensure backend is running on `127.0.0.1:8000`.
 - If Python imports fail in editor, select the correct virtual environment in VS Code.
 
+## Deploy on Railway
+
+This repository is configured for Railway backend deployment using:
+
+- [Procfile](Procfile)
+- [railway.toml](railway.toml)
+
+### Steps
+
+1. Push latest code to GitHub.
+2. Open Railway and create a new project.
+3. Select `Deploy from GitHub Repo` and choose this repository.
+4. Railway detects Python via [requirements.txt](requirements.txt).
+5. Deploy the service.
+
+The app starts with:
+
+```bash
+uvicorn main:app --host 0.0.0.0 --port ${PORT}
+```
+
+### Required notes
+
+- Health check path is `/`.
+- Resume data is stored in-memory currently, so it resets on redeploy/restart.
+- Some job sources are dynamic and may return varying results on hosted environments.
+
+### Frontend deployment
+
+Deploy [internship-frontend](internship-frontend) as a separate Railway service (Node/Vite static build), or on Vercel/Netlify.
+Then point frontend API calls to your Railway backend URL.
+
 ## Roadmap Ideas
 
 - Switch selected sources to API-based adapters where possible
