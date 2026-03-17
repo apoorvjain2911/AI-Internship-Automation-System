@@ -238,6 +238,7 @@ async def auto_apply(
         for source in selected_sources
     }
     source_failures = []
+    source_warnings = []
 
     # 1️⃣ Scrape jobs from selected sources
     merged_jobs = []
@@ -246,6 +247,10 @@ async def auto_apply(
         try:
             source_jobs = scraper(keyword)
             source_stats[source]["fetched"] = len(source_jobs)
+            if not source_jobs:
+                source_warnings.append(
+                    f"{source} returned 0 jobs for keyword '{keyword}'."
+                )
             merged_jobs.extend(source_jobs)
         except Exception as exc:
             source_failures.append({"source": source, "reason": str(exc)})
@@ -255,6 +260,7 @@ async def auto_apply(
             "error": "No jobs found from selected sources",
             "source_stats": source_stats,
             "source_failures": source_failures,
+            "source_warnings": source_warnings,
         }
 
     jobs = dedupe_jobs(merged_jobs)
@@ -316,6 +322,7 @@ async def auto_apply(
             "total_jobs_after_filters": 0,
             "source_stats": source_stats,
             "source_failures": source_failures,
+            "source_warnings": source_warnings,
             "top_matches": [],
             "message": "No jobs matched selected filters"
         }
@@ -370,6 +377,7 @@ async def auto_apply(
         "total_jobs_after_filters": len(filtered_jobs),
         "source_stats": source_stats,
         "source_failures": source_failures,
+        "source_warnings": source_warnings,
         "filters_applied": {
             "sources": selected_sources,
             "work_mode": normalized_mode or None,

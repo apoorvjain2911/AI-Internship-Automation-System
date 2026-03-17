@@ -327,6 +327,11 @@ function App() {
                   Partial results: {jobsResult.source_failures.map((item) => item.source).join(", ")} unavailable.
                 </p>
               )}
+              {jobsResult.source_warnings && jobsResult.source_warnings.length > 0 && (
+                <p className="text-sm text-orange-300 mt-2">
+                  Source notes: {jobsResult.source_warnings.join(" ")}
+                </p>
+              )}
             </div>
           </div>
         )}

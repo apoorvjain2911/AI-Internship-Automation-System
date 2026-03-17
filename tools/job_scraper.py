@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import time
 import re
+import os
 
 
 # Global skill keywords (you can expand this)
@@ -25,6 +26,11 @@ SKILL_KEYWORDS = [
 ]
 
 
+DEFAULT_TIMEOUT_SECONDS = int(os.getenv("SCRAPER_TIMEOUT_SECONDS", "12"))
+DEFAULT_RETRIES = int(os.getenv("SCRAPER_MAX_RETRIES", "2"))
+DEFAULT_BACKOFF_SECONDS = float(os.getenv("SCRAPER_BACKOFF_SECONDS", "1.0"))
+
+
 def extract_skills_from_text(text):
     found_skills = []
 
@@ -35,6 +41,38 @@ def extract_skills_from_text(text):
             found_skills.append(skill)
 
     return list(set(found_skills))
+
+
+def request_with_retries(
+    url,
+    headers=None,
+    timeout=DEFAULT_TIMEOUT_SECONDS,
+    retries=DEFAULT_RETRIES,
+    backoff_seconds=DEFAULT_BACKOFF_SECONDS,
+):
+    last_exception = None
+
+    for attempt in range(retries + 1):
+        try:
+            response = requests.get(url, headers=headers, timeout=timeout)
+
+            # Retry on transient upstream errors/rate limits.
+            if response.status_code in {429, 500, 502, 503, 504}:
+                if attempt < retries:
+                    time.sleep(backoff_seconds * (attempt + 1))
+                    continue
+
+            return response
+
+        except requests.RequestException as exc:
+            last_exception = exc
+            if attempt < retries:
+                time.sleep(backoff_seconds * (attempt + 1))
+
+    if last_exception:
+        raise last_exception
+
+    return None
 
 
 def parse_stipend_min(stipend_text: str):
@@ -148,9 +186,12 @@ def scrape_internshala(keyword: str):
         "User-Agent": "Mozilla/5.0"
     }
 
-    response = requests.get(url, headers=headers)
+    try:
+        response = request_with_retries(url, headers=headers)
+    except requests.RequestException:
+        return []
 
-    if response.status_code != 200:
+    if not response or response.status_code != 200:
         return []
 
     soup = BeautifulSoup(response.text, "html.parser")
@@ -176,7 +217,10 @@ def scrape_internshala(keyword: str):
         # Visit job page for skill and metadata extraction
         # ---------------------------
         try:
-            job_response = requests.get(job_link, headers=headers)
+            job_response = request_with_retries(job_link, headers=headers)
+            if not job_response or job_response.status_code != 200:
+                raise requests.RequestException("Job detail page unavailable")
+
             job_soup = BeautifulSoup(job_response.text, "html.parser")
 
             description_div = job_soup.find("div", class_="internship_details")

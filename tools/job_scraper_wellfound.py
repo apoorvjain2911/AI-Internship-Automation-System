@@ -1,4 +1,3 @@
-import requests
 from bs4 import BeautifulSoup
 from urllib.parse import quote_plus
 
@@ -6,6 +5,7 @@ from tools.job_scraper import (
     extract_skills_from_text,
     infer_work_mode,
     parse_posted_days_ago,
+    request_with_retries,
 )
 
 
@@ -29,11 +29,11 @@ def scrape_wellfound_jobs(keyword: str, limit: int = 20):
     url = f"{BASE_URL}/jobs?query={quote_plus(keyword + ' internship')}"
 
     try:
-        response = requests.get(url, headers=HEADERS, timeout=15)
+        response = request_with_retries(url, headers=HEADERS)
     except Exception:
         return []
 
-    if response.status_code != 200:
+    if not response or response.status_code != 200:
         return []
 
     soup = BeautifulSoup(response.text, "html.parser")
