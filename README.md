@@ -1,5 +1,9 @@
 # AI Internship Automation System
 
+Live Website: https://ai-internship-automation-system.vercel.app
+
+Backend API: https://ai-internship-automation-system-production.up.railway.app
+
 An internship discovery and matching platform with a FastAPI backend and React frontend.
 
 Upload your resume, fetch internships from multiple platforms, rank by resume-job fit, and review missing skills for each job.
