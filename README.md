@@ -244,6 +244,42 @@ uvicorn main:app --host 0.0.0.0 --port ${PORT}
 Deploy [internship-frontend](internship-frontend) as a separate Railway service (Node/Vite static build), or on Vercel/Netlify.
 Then point frontend API calls to your Railway backend URL.
 
+## Deploy Frontend on Vercel
+
+1. Go to Vercel and click `Add New -> Project`.
+2. Import this GitHub repository.
+3. Set `Root Directory` to `internship-frontend`.
+4. Framework preset: `Vite`.
+5. Add environment variable:
+	- `VITE_API_BASE_URL = https://<your-railway-backend>.up.railway.app`
+6. Deploy.
+
+Build settings (if asked manually):
+
+- Build command: `npm run build`
+- Output directory: `dist`
+
+## Deploy Frontend on Netlify
+
+1. Go to Netlify and click `Add new site -> Import an existing project`.
+2. Connect GitHub and select this repo.
+3. Set `Base directory` to `internship-frontend`.
+4. Build command: `npm run build`
+5. Publish directory: `dist`
+6. Add environment variable:
+	- `VITE_API_BASE_URL = https://<your-railway-backend>.up.railway.app`
+7. Deploy site.
+
+## Frontend Environment Variables
+
+Use [internship-frontend/.env.example](internship-frontend/.env.example) as reference.
+
+Local example:
+
+```bash
+VITE_API_BASE_URL=http://127.0.0.1:8000
+```
+
 ## Roadmap Ideas
 
 - Switch selected sources to API-based adapters where possible
