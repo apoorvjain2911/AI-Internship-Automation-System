@@ -246,7 +246,7 @@ async def auto_apply(
     source_failures = []
     source_warnings = []
 
-    # 1️⃣ Scrape jobs from selected sources
+    # 1️ Scrape jobs from selected sources
     merged_jobs = []
     for source in selected_sources:
         scraper = scraper_map[source]
@@ -333,16 +333,16 @@ async def auto_apply(
             "message": "No jobs matched selected filters"
         }
 
-    # 2️⃣ Rank jobs
+    # 2️ Rank jobs
     ranked_jobs = rank_jobs(resume_skills, filtered_jobs)
 
-    # 3️⃣ Sort jobs
+    # 3️ Sort jobs
     ranked_jobs = sort_jobs(ranked_jobs, sort_by=sort_by, sort_order=sort_order)
 
-    # 4️⃣ Take top N after filters and sorting
+    # 4️ Take top N after filters and sorting
     top_jobs = ranked_jobs[:top_n]
 
-    # 5️⃣ Prepare results with skill-gap details for each job
+    # 5️ Prepare results with skill-gap details for each job
     results = []
 
     for job in top_jobs:
